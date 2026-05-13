@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pbm_tugas_praktikum/services/api_service.dart';
+import 'package:pbm_tugas_praktikum/theme/sd_theme.dart';
 import 'product_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -10,31 +12,28 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _nimController = TextEditingController();
-  final _passController = TextEditingController();
-  final _api = ApiService();
-  bool _isLoading = false;
-  bool _obscurePass = true;
+  final _nimCtrl  = TextEditingController();
+  final _passCtrl = TextEditingController();
+  final _api      = ApiService();
+  bool _isLoading  = false;
+  bool _obscure    = true;
 
   @override
   void dispose() {
-    _nimController.dispose();
-    _passController.dispose();
+    _nimCtrl.dispose();
+    _passCtrl.dispose();
     super.dispose();
   }
 
   void _login() async {
-    final nim = _nimController.text.trim();
-
+    final nim = _nimCtrl.text.trim();
     if (nim.isEmpty) {
-      _showSnackBar('NIM tidak boleh kosong', isError: true);
+      _snack('Farmer ID tidak boleh kosong!', isError: true);
       return;
     }
 
     setState(() => _isLoading = true);
-
     final result = await _api.login(nim);
-
     setState(() => _isLoading = false);
 
     if (!mounted) return;
@@ -45,175 +44,115 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(builder: (_) => const ProductScreen()),
       );
     } else {
-      _showSnackBar('Login gagal. Periksa kembali NIM kamu.', isError: true);
+      _snack('Pierre tidak mengenali kamu. Cek Farmer ID-mu!', isError: true);
     }
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red.shade700 : Colors.green.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+  void _snack(String msg, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg, style: sdBody(size: 18, color: Colors.white)),
+      backgroundColor: isError ? kMaroon : kGreenBtn,
+      behavior: SnackBarBehavior.floating,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F4FF),
+      backgroundColor: kBgGreen,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon / Logo area
-                Center(
-                  child: Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(Icons.school_rounded, color: Colors.white, size: 38),
-                  ),
-                ),
-
-                const SizedBox(height: 28),
-
-                Text(
-                  'Selamat Datang',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1A1A2E),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Masukkan NIM untuk melanjutkan',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-
-                const SizedBox(height: 36),
-
-                // NIM Field
-                _buildLabel('NIM'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _nimController,
-                  keyboardType: TextInputType.number,
-                  decoration: _inputDecoration(
-                    hint: 'Masukkan NIM kamu',
-                    icon: Icons.badge_outlined,
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                // Password Field
-                _buildLabel('Password'),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _passController,
-                  obscureText: _obscurePass,
-                  decoration: _inputDecoration(
-                    hint: '••••••••',
-                    icon: Icons.lock_outline_rounded,
-                    suffix: IconButton(
-                      icon: Icon(
-                        _obscurePass ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                        color: Colors.grey.shade500,
-                        size: 20,
-                      ),
-                      onPressed: () => setState(() => _obscurePass = !_obscurePass),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 32),
-
-                // Login Button
-                SizedBox(
+                Container(
                   width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : const Text(
-                            'Masuk',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                          ),
+                  padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  decoration: sdBox(bg: kMaroon),
+                  child: Column(
+                    children: [
+                      Text('🌿 Pierre\'s', style: sdTitle(size: 22, color: kGold)),
+                      Text('General Store', style: sdTitle(size: 32, color: Colors.white)),
+                      const SizedBox(height: 4),
+                      Text('- Pelican Town -',
+                          style: sdBody(size: 18, color: kGold)),
+                    ],
                   ),
+                ),
+
+                const SizedBox(height: 16),
+
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: sdBox(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Text(
+                          '"Who goes there?"',
+                          style: sdBody(size: 20, color: kWoodMid),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      Text('🪪  [ Farmer ID ]', style: sdBody(size: 20)),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _nimCtrl,
+                        keyboardType: TextInputType.number,
+                        style: sdBody(size: 20),
+                        decoration: sdInput(hint: 'Enter your NIM...'),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      Text('🔑  [ Password ]', style: sdBody(size: 20)),
+                      const SizedBox(height: 6),
+                      TextField(
+                        controller: _passCtrl,
+                        obscureText: _obscure,
+                        style: sdBody(size: 20),
+                        decoration: sdInput(hint: '••••••••').copyWith(
+                          suffixIcon: GestureDetector(
+                            onTap: () => setState(() => _obscure = !_obscure),
+                            child: Padding(
+                              padding: const EdgeInsets.all(10),
+                              child: Text(
+                                _obscure ? '👁️' : '🙈',
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      SdButton(
+                        label: '✦  Enter the Shop  ✦',
+                        onTap: _login,
+                        isLoading: _isLoading,
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                Text(
+                  'Open 9am - 5pm • Closed Wednesdays',
+                  style: sdBody(size: 16, color: kGold.withOpacity(0.8)),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF1A1A2E),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration({
-    required String hint,
-    required IconData icon,
-    Widget? suffix,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-      prefixIcon: Icon(icon, color: Colors.grey.shade500, size: 20),
-      suffixIcon: suffix,
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade200),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade200),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 1.8),
       ),
     );
   }

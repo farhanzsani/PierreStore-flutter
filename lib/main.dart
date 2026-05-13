@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pbm_tugas_praktikum/screens/login_screen.dart';
+import 'theme/sd_theme.dart';
 
 void main() {
   runApp(const MyApp());
@@ -11,15 +13,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PBM Tugas',
+      title: "Pierre's General Store",
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6C63FF),
-          brightness: Brightness.light,
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: kGreenBtn),
+        textTheme: GoogleFonts.vt323TextTheme(),
         useMaterial3: true,
-        fontFamily: 'Roboto',
+        scaffoldBackgroundColor: kBgGreen,
       ),
       home: const LoginScreen(),
     );

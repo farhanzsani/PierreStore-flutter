@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/api_service.dart';
+import '../theme/sd_theme.dart';
 
 class SubmitScreen extends StatefulWidget {
   const SubmitScreen({super.key});
@@ -9,13 +11,13 @@ class SubmitScreen extends StatefulWidget {
 }
 
 class _SubmitScreenState extends State<SubmitScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
-  final _priceCtrl = TextEditingController();
-  final _descCtrl = TextEditingController();
+  final _formKey    = GlobalKey<FormState>();
+  final _nameCtrl   = TextEditingController();
+  final _priceCtrl  = TextEditingController();
+  final _descCtrl   = TextEditingController();
   final _githubCtrl = TextEditingController();
-  final _api = ApiService();
-  bool _isLoading = false;
+  final _api        = ApiService();
+  bool _isLoading   = false;
 
   @override
   void dispose() {
@@ -26,12 +28,12 @@ class _SubmitScreenState extends State<SubmitScreen> {
     super.dispose();
   }
 
-  void _submit() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     final price = int.tryParse(_priceCtrl.text.trim());
     if (price == null) {
-      _showSnackBar('Harga harus berupa angka', isError: true);
+      _snack('Harga harus berupa angka!', isError: true);
       return;
     }
 
@@ -45,240 +47,250 @@ class _SubmitScreenState extends State<SubmitScreen> {
     );
 
     setState(() => _isLoading = false);
-
     if (!mounted) return;
 
-    _showSnackBar(
-      success ? 'Tugas berhasil dikumpulkan!' : 'Gagal submit, coba lagi.',
-      isError: !success,
-    );
-
     if (success) {
-      Future.delayed(const Duration(milliseconds: 800), () {
-        if (mounted) Navigator.pop(context);
-      });
+      _snack('"Thank you! I\'ll put it on the shelf right away."');
+      await Future.delayed(const Duration(milliseconds: 900));
+      if (mounted) Navigator.pop(context);
+    } else {
+      _snack('"Hmm, I can\'t accept this right now." - Pierre', isError: true);
     }
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red.shade700 : Colors.green.shade700,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+  void _snack(String msg, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(msg, style: sdBody(size: 17, color: Colors.white)),
+      backgroundColor: isError ? kMaroon : kGreenBtn,
+      behavior: SnackBarBehavior.floating,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      duration: const Duration(seconds: 3),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F4FF),
+      backgroundColor: kBgGreen,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF6C63FF),
-        foregroundColor: Colors.white,
+        backgroundColor: kWoodDark,
+        foregroundColor: kGold,
         elevation: 0,
-        title: const Text(
-          'Submit Tugas',
-          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
+        leading: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Center(
+            child: Text('◀', style: sdBody(size: 22, color: kGold)),
+          ),
         ),
+        title: Text("Pierre's General Store",
+            style: sdTitle(size: 22, color: kGold)),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header card info
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEDE9FF),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFF6C63FF).withOpacity(0.2)),
-                ),
-                child: Row(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Column(
+          children: [
+            _DialogueBox(
+              speaker: 'Pierre',
+              message:
+                  '"Hello there! Got something to sell? Tell me about your item."',
+            ),
+            const SizedBox(height: 14),
+
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+              decoration: sdBox(bg: kMaroon),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('🌿', style: const TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  Text('Add Item to Inventory',
+                      style: sdTitle(size: 24, color: Colors.white)),
+                  const SizedBox(width: 8),
+                  Text('🌿', style: const TextStyle(fontSize: 20)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: sdBox(),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.info_outline, color: Color(0xFF6C63FF), size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Isi form berikut untuk mengumpulkan tugas praktikum kamu.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.indigo.shade700,
+                    _FieldLabel(icon: '🏷️', text: 'Item Name'),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _nameCtrl,
+                      style: sdBody(size: 20),
+                      decoration: sdInput(hint: 'e.g. Ancient Sword...'),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? '▶ Pierre needs a name!'
+                          : null,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _FieldLabel(icon: '💰', text: 'Selling Price (gold)'),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _priceCtrl,
+                      keyboardType: TextInputType.number,
+                      style: sdBody(size: 20),
+                      decoration: sdInput(hint: 'e.g. 50000'),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty)
+                          return '▶ Set a price!';
+                        if (int.tryParse(v.trim()) == null)
+                          return '▶ Numbers only!';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _FieldLabel(icon: '📜', text: 'Item Description'),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _descCtrl,
+                      maxLines: 3,
+                      style: sdBody(size: 19),
+                      decoration: sdInput(
+                          hint: 'Describe what this item does...'),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? '▶ Add a description!'
+                          : null,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    _FieldLabel(icon: '🔗', text: 'GitHub Repository'),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _githubCtrl,
+                      keyboardType: TextInputType.url,
+                      style: sdBody(size: 18),
+                      decoration: sdInput(hint: 'https://github.com/...'),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty)
+                          return '▶ Link required!';
+                        if (!v.trim().startsWith('http'))
+                          return '▶ Invalid URL!';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    Row(
+                      children: [
+                        Expanded(
+                            child: Container(height: 2, color: kWoodMid)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Text('✦', style: sdBody(size: 22, color: kGold)),
                         ),
-                      ),
+                        Expanded(
+                            child: Container(height: 2, color: kWoodMid)),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    SdButton(
+                      label: '✦  Sell to Pierre  ✦',
+                      onTap: _submit,
+                      isLoading: _isLoading,
+                      fontSize: 26,
                     ),
                   ],
                 ),
               ),
+            ),
 
-              const SizedBox(height: 24),
+            const SizedBox(height: 14),
 
-              _buildLabel('Nama Produk'),
-              const SizedBox(height: 8),
-              _buildField(
-                controller: _nameCtrl,
-                hint: 'Contoh: Aplikasi Manajemen Kos',
-                icon: Icons.inventory_2_outlined,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Nama produk tidak boleh kosong'
-                    : null,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: sdBox(bg: kWoodMid.withOpacity(0.6)),
+              child: Text(
+                '"Open 9am–5pm. Closed Wednesdays.\nHappy to buy anything!"',
+                style: sdBody(size: 16, color: kParchment),
+                textAlign: TextAlign.center,
               ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
-              const SizedBox(height: 20),
+class _FieldLabel extends StatelessWidget {
+  final String icon;
+  final String text;
+  const _FieldLabel({required this.icon, required this.text});
 
-              _buildLabel('Harga (Rp)'),
-              const SizedBox(height: 8),
-              _buildField(
-                controller: _priceCtrl,
-                hint: 'Contoh: 50000',
-                icon: Icons.payments_outlined,
-                keyboardType: TextInputType.number,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Harga tidak boleh kosong';
-                  if (int.tryParse(v.trim()) == null) return 'Harga harus berupa angka';
-                  return null;
-                },
-              ),
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text('$icon  ', style: const TextStyle(fontSize: 18)),
+        Text('[ $text ]', style: sdBody(size: 20, color: kWoodDark)),
+      ],
+    );
+  }
+}
 
-              const SizedBox(height: 20),
+class _DialogueBox extends StatelessWidget {
+  final String speaker;
+  final String message;
+  const _DialogueBox({required this.speaker, required this.message});
 
-              _buildLabel('Deskripsi Produk'),
-              const SizedBox(height: 8),
-              _buildField(
-                controller: _descCtrl,
-                hint: 'Jelaskan produk yang kamu buat...',
-                icon: Icons.description_outlined,
-                maxLines: 3,
-                validator: (v) => (v == null || v.trim().isEmpty)
-                    ? 'Deskripsi tidak boleh kosong'
-                    : null,
-              ),
-
-              const SizedBox(height: 20),
-
-              _buildLabel('Link GitHub'),
-              const SizedBox(height: 8),
-              _buildField(
-                controller: _githubCtrl,
-                hint: 'https://github.com/username/repo',
-                icon: Icons.link_rounded,
-                keyboardType: TextInputType.url,
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Link GitHub tidak boleh kosong';
-                  if (!v.trim().startsWith('http')) return 'Masukkan URL yang valid';
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 36),
-
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6C63FF),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey.shade300,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2.5,
-                          ),
-                        )
-                      : const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.send_rounded, size: 18),
-                            SizedBox(width: 8),
-                            Text(
-                              'Kumpulkan Tugas',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-            ],
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: sdBox(bg: kParchment.withOpacity(0.95)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            color: kWoodDark,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('🧑‍🌾', style: const TextStyle(fontSize: 16)),
+                const SizedBox(width: 6),
+                Text(speaker,
+                    style: GoogleFonts.vt323(
+                        fontSize: 20,
+                        color: kGold,
+                        letterSpacing: 1)),
+              ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: Color(0xFF1A1A2E),
-      ),
-    );
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      validator: validator,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-        prefixIcon: Icon(icon, color: Colors.grey.shade500, size: 20),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFF6C63FF), width: 1.8),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.red.shade400, width: 1.5),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.red.shade400, width: 1.8),
-        ),
+          Padding(
+            padding: const EdgeInsets.all(14),
+            child: Text(message,
+                style: sdBody(size: 18, color: kWoodDark)),
+          ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 12, bottom: 8),
+              child: Text('▼',
+                  style: sdBody(size: 14, color: kWoodMid)),
+            ),
+          ),
+        ],
       ),
     );
   }
